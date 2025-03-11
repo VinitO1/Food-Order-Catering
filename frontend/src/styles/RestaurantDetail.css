@@ -1,0 +1,56 @@
+.restaurant-detail-card {
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	margin-bottom: 2rem;
+}
+
+.menu-tabs .nav-link {
+	font-weight: 500;
+	color: #495057;
+	padding: 0.75rem 1.25rem;
+	border-radius: 0.25rem 0.25rem 0 0;
+	transition: all 0.2s ease;
+}
+
+.menu-tabs .nav-link.active {
+	font-weight: 600;
+	color: #007bff;
+	background-color: #f8f9fa;
+	border-bottom: 2px solid #007bff;
+}
+
+.menu-item-card {
+	border-radius: 8px;
+	transition: transform 0.2s, box-shadow 0.2s;
+	border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.menu-item-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.menu-description {
+	font-size: 0.9rem;
+	min-height: 60px;
+	margin-bottom: 1rem;
+	color: #6c757d;
+}
+
+.menu-price {
+	font-weight: 600;
+	font-size: 1.1rem;
+	color: #28a745;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.menu-tabs .nav-link {
+		padding: 0.5rem 0.75rem;
+		font-size: 0.9rem;
+	}
+	
+	.menu-item-card {
+		margin-bottom: 1rem;
+	}
+}

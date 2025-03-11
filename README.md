@@ -1,70 +1,166 @@
-# Getting Started with Create React App
+# BC Food Feast - Food Ordering & Catering Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![BC Food Feast Logo](frontend/public/logo.png)
 
-## Available Scripts
+BC Food Feast is a comprehensive food ordering and catering platform designed for British Columbia restaurants. The application allows users to browse restaurants, order food for delivery or pickup, and request catering services for events.
 
-In the project directory, you can run:
+## 🍽️ Features
 
-### `npm start`
+### For Customers
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Restaurant Discovery**: Browse restaurants by location, cuisine type, and ratings
+- **Menu Exploration**: View detailed menus with item descriptions, prices, and images
+- **Online Ordering**: Place food orders for delivery or pickup
+- **Catering Services**: Request catering for events with customizable options
+- **User Profiles**: Save favorite restaurants, view order history, and manage payment methods
+- **Featured Items**: Discover popular dishes across different categories
+- **Contact Support**: Reach out to customer service through the contact form
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### For Restaurants
 
-### `npm test`
+- **Menu Management**: Easily update menu items, prices, and availability
+- **Order Processing**: Receive and manage incoming orders
+- **Catering Requests**: Handle catering inquiries and bookings
+- **Analytics**: Track sales, popular items, and customer preferences
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Technology Stack
 
-### `npm run build`
+### Frontend
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **React**: UI library for building the user interface
+- **React Router**: For navigation and routing
+- **React Bootstrap**: UI component library for responsive design
+- **React Icons**: Icon library for visual elements
+- **Context API**: For state management
+- **CSS**: Custom styling for components
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Backend
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **Express.js**: Lightweight server for API endpoints
+- **Supabase**: Backend-as-a-Service for database, authentication, and storage
+- **PostgreSQL**: Relational database (via Supabase)
+- **Node.js**: JavaScript runtime environment
 
-### `npm run eject`
+### Authentication
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **Supabase Auth**: Email/password authentication
+- **Row Level Security**: For data protection and user-specific content
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📁 Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+cateringfoodreservatiron/
+├── frontend/                  # React frontend application
+│   ├── public/                # Static files
+│   └── src/                   # Source code
+│       ├── components/        # Reusable UI components
+│       ├── contexts/          # React contexts
+│       ├── pages/             # Page components
+│       ├── styles/            # CSS styles
+│       ├── utils/             # Utility functions
+│       └── App.js             # Main app component
+│
+├── backend/                   # Express backend
+│   ├── config/                # Configuration files
+│   ├── routes/                # API routes
+│   ├── index.js               # Entry point
+│   └── .env                   # Environment variables
+│
+├── database/                  # Database scripts and migrations
+├── .gitignore                 # Git ignore file
+└── README.md                  # Project documentation
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🚀 Getting Started
 
-## Learn More
+### Prerequisites
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- Node.js (v14 or higher)
+- npm or yarn
+- Supabase account
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Installation
 
-### Code Splitting
+1. Clone the repository:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   ```bash
+   git clone https://github.com/yourusername/cateringfoodreservatiron.git
+   cd cateringfoodreservatiron
+   ```
 
-### Analyzing the Bundle Size
+2. Install frontend dependencies:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+   ```bash
+   cd frontend
+   npm install
+   ```
 
-### Making a Progressive Web App
+3. Install backend dependencies:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+   ```bash
+   cd ../backend
+   npm install
+   ```
 
-### Advanced Configuration
+4. Set up environment variables:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+   - Create a `.env` file in the frontend directory based on `.env.example`
+   - Update the backend `.env` file with your Supabase credentials
 
-### Deployment
+5. Start the development servers:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+   ```bash
+   # In the backend directory
+   npm run dev
 
-### `npm run build` fails to minify
+   # In the frontend directory (in a new terminal)
+   npm start
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+6. Open your browser and navigate to `http://localhost:3000`
+
+## 📊 Database Schema
+
+The application uses the following main tables in Supabase:
+
+- **users**: User accounts and profiles
+- **restaurants**: Restaurant information
+- **menu_items**: Food items available at restaurants
+- **orders**: Customer orders
+- **order_items**: Individual items in an order
+- **cart_items**: Items in a user's shopping cart
+- **catering_requests**: Catering service requests
+- **contact_messages**: Customer inquiries and feedback
+
+## 🔐 Authentication
+
+The application uses Supabase Authentication for user management. Row Level Security (RLS) policies are implemented to ensure users can only access their own data.
+
+## 📱 Responsive Design
+
+BC Food Feast is designed to work seamlessly across devices of all sizes:
+
+- Desktop computers
+- Tablets
+- Mobile phones
+
+## 🌐 Deployment
+
+### Frontend Deployment
+
+The frontend can be deployed to services like Vercel, Netlify, or AWS Amplify.
+
+### Backend Deployment
+
+The backend can be deployed to services like Heroku, AWS Elastic Beanstalk, or Digital Ocean.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+

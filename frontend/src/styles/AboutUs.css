@@ -1,0 +1,290 @@
+/* About Us Page Styles */
+
+.about-us-container {
+	max-width: 1200px;
+}
+
+/* Hero Banner - New Full-Width Hero Section */
+.hero-banner {
+	position: relative;
+	height: 500px;
+	margin-left: calc(-50vw + 50%);
+	margin-right: calc(-50vw + 50%);
+	background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	color: white;
+	margin-top: -3rem;
+}
+
+.hero-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.hero-content {
+	max-width: 800px;
+	padding: 2rem;
+	z-index: 2;
+}
+
+.hero-title {
+	font-size: 3.5rem;
+	font-weight: 700;
+	margin-bottom: 1rem;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-subtitle {
+	font-size: 1.5rem;
+	margin-bottom: 1.5rem;
+	text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.hero-buttons .btn {
+	padding: 0.75rem 1.5rem;
+	font-weight: 600;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+}
+
+.hero-buttons .btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Mission Section (formerly Hero Section) */
+.mission-section {
+	padding: 2rem 0;
+}
+
+.mission-image-container {
+	position: relative;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.mission-image {
+	border-radius: 8px;
+	transition: transform 0.3s ease;
+}
+
+.mission-image:hover {
+	transform: scale(1.02);
+}
+
+/* Section Titles */
+.section-title {
+	color: #333;
+	font-weight: 700;
+	margin-bottom: 1.5rem;
+	position: relative;
+}
+
+.section-text {
+	font-size: 1.1rem;
+	line-height: 1.7;
+	color: #555;
+}
+
+.highlight {
+	color: #4a6da7;
+	font-weight: 600;
+}
+
+/* Services Section */
+.services-section {
+	padding: 2rem 0;
+}
+
+.service-card {
+	border: none;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.icon-container {
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	background-color: #f8f9fa;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto;
+}
+
+.service-icon {
+	font-size: 2rem;
+	color: #4a6da7;
+}
+
+/* Partners Section */
+.partners-section {
+	padding: 2rem 0;
+}
+
+.partner-logos {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1.5rem;
+	margin-top: 2rem;
+}
+
+.partner-logo {
+	padding: 1rem 1.5rem;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	font-weight: 600;
+	color: #4a6da7;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.partner-logo:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Why Us Section */
+.why-us-section {
+	padding: 2rem 0;
+}
+
+.feature-item {
+	text-align: center;
+	padding: 1.5rem;
+	border-radius: 8px;
+	background-color: #f8f9fa;
+	height: 100%;
+	transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+	transform: translateY(-5px);
+}
+
+.feature-icon {
+	font-size: 2.5rem;
+	color: #4a6da7;
+	margin-bottom: 1rem;
+}
+
+.feature-item h4 {
+	font-weight: 600;
+	margin-bottom: 1rem;
+	color: #333;
+}
+
+.feature-item p {
+	color: #666;
+}
+
+/* CTA Section */
+.cta-section {
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+	.hero-title {
+		font-size: 2.8rem;
+	}
+
+	.hero-subtitle {
+		font-size: 1.3rem;
+	}
+
+	.section-title {
+		font-size: 1.8rem;
+	}
+
+	.partner-logos {
+		gap: 1rem;
+	}
+
+	.partner-logo {
+		padding: 0.8rem 1.2rem;
+		font-size: 0.9rem;
+	}
+}
+
+@media (max-width: 767.98px) {
+	.hero-banner {
+		height: 400px;
+	}
+
+	.hero-title {
+		font-size: 2.2rem;
+	}
+
+	.hero-subtitle {
+		font-size: 1.1rem;
+	}
+
+	.hero-buttons .btn {
+		padding: 0.6rem 1.2rem;
+	}
+
+	.section-title {
+		font-size: 1.6rem;
+	}
+
+	.section-text {
+		font-size: 1rem;
+	}
+
+	.partner-logos {
+		gap: 0.8rem;
+	}
+
+	.partner-logo {
+		padding: 0.7rem 1rem;
+		font-size: 0.8rem;
+	}
+
+	.feature-icon {
+		font-size: 2rem;
+	}
+}
+
+@media (max-width: 575.98px) {
+	.hero-banner {
+		height: 350px;
+	}
+
+	.hero-title {
+		font-size: 1.8rem;
+	}
+
+	.hero-subtitle {
+		font-size: 1rem;
+	}
+
+	.hero-buttons .btn {
+		padding: 0.5rem 1rem;
+		font-size: 0.9rem;
+	}
+}

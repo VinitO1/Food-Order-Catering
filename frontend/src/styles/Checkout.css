@@ -1,0 +1,181 @@
+.checkout-container {
+	padding-bottom: 50px;
+}
+
+.checkout-form-card {
+	border: none;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	margin-bottom: 30px;
+}
+
+.checkout-form-card .card-header {
+	background-color: #4a6da7;
+	color: white;
+	padding: 15px 20px;
+}
+
+.checkout-form-card .card-header h3 {
+	margin: 0;
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+.checkout-form-card .card-body {
+	padding: 25px;
+}
+
+.order-summary-card {
+	border: none;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	position: sticky;
+	top: 20px;
+}
+
+.order-summary-card .card-header {
+	background-color: #4a6da7;
+	color: white;
+	padding: 15px 20px;
+}
+
+.order-summary-card .card-header h3 {
+	margin: 0;
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+.order-summary-card .card-body {
+	padding: 0;
+}
+
+.order-items {
+	margin-bottom: 15px;
+}
+
+.order-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	padding: 15px 20px;
+	border-bottom: 1px solid #eee;
+}
+
+.item-details {
+	flex: 1;
+}
+
+.item-name {
+	font-weight: 500;
+	margin-bottom: 5px;
+}
+
+.quantity {
+	font-weight: 600;
+	color: #4a6da7;
+	margin-right: 5px;
+}
+
+.restaurant-name {
+	font-size: 0.85rem;
+	color: #666;
+}
+
+.item-price {
+	font-weight: 600;
+	font-size: 1.1rem;
+}
+
+.price-summary {
+	padding: 15px 20px;
+	border-bottom: 1px solid #eee;
+}
+
+.price-row {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.price-row.total {
+	margin-top: 15px;
+	padding-top: 15px;
+	border-top: 1px dashed #ddd;
+	font-weight: 700;
+	font-size: 1.2rem;
+	color: #4a6da7;
+}
+
+.delivery-info {
+	display: flex;
+	align-items: center;
+	padding: 20px;
+	background-color: #f9f9f9;
+	border-bottom: 1px solid #eee;
+}
+
+.delivery-icon {
+	font-size: 2rem;
+	color: #4a6da7;
+	margin-right: 15px;
+}
+
+.delivery-text h5 {
+	margin: 0 0 5px 0;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.delivery-text p {
+	margin: 0;
+	color: #666;
+}
+
+.info-note {
+	display: flex;
+	align-items: flex-start;
+	padding: 15px 20px;
+	font-size: 0.85rem;
+	color: #666;
+}
+
+.info-icon {
+	margin-right: 10px;
+	margin-top: 3px;
+	color: #4a6da7;
+}
+
+.payment-methods {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.payment-option {
+	flex: 1;
+	min-width: 200px;
+}
+
+.payment-method-label {
+	display: flex;
+	align-items: center;
+}
+
+.payment-icon {
+	margin-right: 10px;
+	font-size: 1.2rem;
+	color: #4a6da7;
+}
+
+@media (max-width: 768px) {
+	.checkout-form-card,
+	.order-summary-card {
+		margin-bottom: 20px;
+	}
+
+	.order-summary-card {
+		position: static;
+	}
+
+	.payment-methods {
+		flex-direction: column;
+	}
+}

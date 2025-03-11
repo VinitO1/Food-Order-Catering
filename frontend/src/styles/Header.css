@@ -1,0 +1,151 @@
+/* Add these styles to your existing Header.css file */
+
+/* Custom Navbar */
+.custom-navbar {
+	background-color: #000000 !important;
+}
+
+/* User menu styling */
+.user-menu {
+	display: flex;
+	align-items: center;
+}
+
+.nav-item-spacing {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+/* Cart badge styling */
+.cart-link {
+	position: relative;
+	display: flex;
+	align-items: center;
+	color: #ffffff !important;
+	padding: 0.5rem 0.8rem !important;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+}
+
+.cart-link:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cart-link .icon {
+	color: #ffffff;
+}
+
+.cart-badge {
+	position: absolute;
+	top: -5px;
+	right: -5px;
+	font-size: 0.7rem;
+	padding: 0.25rem 0.4rem;
+}
+
+/* User dropdown styling */
+.user-dropdown {
+	margin-left: 0.3rem;
+}
+
+.user-dropdown-toggle {
+	cursor: pointer;
+}
+
+.profile-link {
+	padding: 0.5rem 0.8rem !important;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+	color: #ffffff !important;
+}
+
+.profile-link .icon {
+	color: #ffffff;
+}
+
+.profile-link span {
+	color: #ffffff;
+	font-weight: 500;
+}
+
+.profile-link:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown-menu {
+	padding: 0.5rem 0;
+	min-width: 200px;
+	margin-top: 0.5rem;
+	border: none;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-icon {
+	margin-right: 0.5rem;
+	font-size: 0.9rem;
+	color: #6c757d;
+}
+
+.logout-item {
+	color: #dc3545;
+}
+
+.logout-item .dropdown-icon {
+	color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+	.cart-badge {
+		top: 0;
+		right: auto;
+		left: 25px;
+	}
+
+	.user-dropdown {
+		margin-left: 0;
+	}
+
+	.profile-link,
+	.cart-link {
+		width: 100%;
+		padding: 0.5rem 0 !important;
+		margin: 5px 0;
+	}
+
+	.nav-item-spacing {
+		margin: 5px 0;
+	}
+
+	.user-menu {
+		flex-direction: column;
+		width: 100%;
+	}
+}
+
+/* Toast notification styling */
+.toast-container {
+	z-index: 1100;
+}
+
+.toast {
+	min-width: 250px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	border: none;
+	border-radius: 8px;
+}
+
+.toast-header {
+	border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+	background-color: rgba(255, 255, 255, 0.85);
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+}
+
+.toast-body {
+	padding: 0.75rem;
+	background-color: #f8f9fa;
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
+}

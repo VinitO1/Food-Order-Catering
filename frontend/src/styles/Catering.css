@@ -1,0 +1,86 @@
+.catering-container {
+	padding-bottom: 2rem;
+}
+
+.catering-form-card {
+	border: none;
+	border-radius: 10px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+}
+
+.catering-form-card .card-header {
+	padding: 1rem 1.5rem;
+}
+
+.catering-info-card {
+	border: none;
+	border-radius: 10px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+	position: sticky;
+	top: 20px;
+}
+
+.catering-info-card .card-header {
+	padding: 1rem 1.5rem;
+}
+
+.info-item {
+	display: flex;
+	margin-bottom: 1.5rem;
+	align-items: flex-start;
+}
+
+.info-item:last-child {
+	margin-bottom: 0;
+}
+
+.info-icon {
+	font-size: 1.5rem;
+	color: #007bff;
+	margin-right: 1rem;
+	margin-top: 0.25rem;
+}
+
+.info-item h5 {
+	margin-bottom: 0.5rem;
+	font-size: 1.1rem;
+}
+
+.info-item p {
+	margin-bottom: 0;
+	color: #6c757d;
+}
+
+.restaurant-select-card {
+	border: 2px solid #e9ecef;
+	border-radius: 10px;
+	transition: all 0.3s ease;
+	cursor: pointer;
+}
+
+.restaurant-select-card:hover {
+	border-color: #007bff;
+	transform: translateY(-5px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.restaurant-select-card.selected {
+	border-color: #007bff;
+	background-color: rgba(0, 123, 255, 0.05);
+}
+
+.selected-indicator {
+	color: #007bff;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+@media (max-width: 991.98px) {
+	.catering-info-card {
+		position: static;
+	}
+}
