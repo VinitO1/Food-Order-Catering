@@ -10,17 +10,9 @@ BC Food Feast is a comprehensive food ordering and catering platform designed fo
 - **Menu Exploration**: View detailed menus with item descriptions, prices, and images
 - **Online Ordering**: Place food orders for delivery or pickup
 - **Catering Services**: Request catering for events with customizable options
-- **User Profiles**: Save favorite restaurants, view order history, and manage payment methods
 - **Order Tracking**: Real-time updates on order status (pending, approved, delivered)
 - **Cart Management**: Add, remove, and update quantities of items in cart
 - **Contact Support**: Reach out to customer service through the contact form
-
-### For Restaurants (Admin Dashboard)
-
-- **Menu Management**: Easily update menu items, prices, and availability
-- **Order Processing**: Receive and manage incoming orders
-- **Catering Requests**: Handle catering inquiries and bookings
-- **Analytics**: Track sales, popular items, and customer preferences
 
 ## 🛠️ Technology Stack
 
@@ -42,39 +34,6 @@ BC Food Feast is a comprehensive food ordering and catering platform designed fo
   - Storage for images and files
 - **Express.js**: Lightweight server for additional API endpoints (optional)
 
-## 📁 Project Structure
-
-```
-Food-Order-Catering/
-├── frontend/                  # React frontend application
-│   ├── public/                # Static files
-│   ├── src/                   # Source code
-│   │   ├── components/        # Reusable UI components
-│   │   ├── contexts/          # React contexts for state management
-│   │   ├── pages/             # Page components (Restaurants, Cart, Checkout, etc.)
-│   │   ├── styles/            # CSS styles for components
-│   │   ├── utils/             # Utility functions and Supabase client
-│   │   ├── App.js             # Main app component with routing
-│   │   └── index.js           # Entry point
-│   ├── .env                   # Environment variables for development
-│   ├── .env.production        # Environment variables for production
-│   ├── .gitignore             # Git ignore file for frontend
-│   ├── package.json           # Frontend dependencies
-│   └── cleanup.sh             # Script to prepare for deployment
-│
-├── backend/                   # Express backend (optional)
-│   ├── config/                # Configuration files
-│   ├── routes/                # API routes
-│   ├── index.js               # Entry point
-│   ├── .env                   # Environment variables
-│   ├── .gitignore             # Git ignore file for backend
-│   └── package.json           # Backend dependencies
-│
-├── .gitignore                 # Root Git ignore file
-├── vercel.json                # Vercel deployment configuration
-├── DEPLOYMENT.md              # Detailed deployment instructions
-└── README.md                  # Project documentation
-```
 
 ## 🚀 Getting Started
 
@@ -147,47 +106,6 @@ The application uses the following main tables in Supabase:
 - **Protected Routes**: Frontend route protection for authenticated areas
 - **Environment Variables**: Sensitive data stored in environment variables
 
-## 🚀 Deployment
-
-### Deploying to Vercel
-
-1. Prepare your project:
-
-   ```bash
-   cd frontend
-   chmod +x cleanup.sh
-   ./cleanup.sh
-   ```
-
-2. Create a production environment file:
-
-   ```bash
-   cp .env.production.template .env.production
-   ```
-
-   Then update with your production Supabase credentials.
-
-3. Deploy using GitHub:
-   - Push your code to GitHub
-   - Import the repository in Vercel
-   - Set environment variables in Vercel dashboard
-   - Deploy your project
-
-For detailed deployment instructions, see the [DEPLOYMENT.md](DEPLOYMENT.md) file.
-
-### Updating Supabase Settings
-
-After deployment, update your Supabase authentication settings with your Vercel domain URL in the "Site URL" and "Redirect URLs" fields.
-
-## 🧪 Testing
-
-To run tests:
-
-```bash
-cd frontend
-npm test
-```
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -196,10 +114,4 @@ npm test
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👥 Authors
-
-- Your Name - Initial work
