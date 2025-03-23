@@ -1,167 +1,158 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import supabase from '../utils/supabase';
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
+export function useAuth() {
+    return useContext(AuthContext);
+}
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Set up axios defaults
+    // Check for existing session on mount
     useEffect(() => {
-        axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    }, []);
-
-    // Check if token exists and is valid on initial load
-    useEffect(() => {
-        const checkAuth = async () => {
+        const checkSession = async () => {
             try {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    // Check if token is expired
-                    const decodedToken = jwtDecode(token);
-                    const currentTime = Date.now() / 1000;
+                setLoading(true);
+                console.log('Checking for existing Supabase session');
 
-                    if (decodedToken.exp < currentTime) {
-                        // Token is expired
-                        localStorage.removeItem('token');
-                        setUser(null);
-                    } else {
-                        // Token is valid, get user data
-                        try {
-                            const response = await axios.get('/api/auth/me', {
-                                headers: {
-                                    Authorization: `Bearer ${token}`
-                                }
-                            });
-                            setUser(response.data.user);
-                        } catch (err) {
-                            console.error('Error fetching user data:', err);
-                            localStorage.removeItem('token');
-                            setUser(null);
-                        }
-                    }
+                // Get current session from Supabase
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error('Error checking session:', error);
+                    throw error;
+                }
+
+                if (session) {
+                    console.log('Found existing session for user:', session.user.id);
+                    setUser(session.user);
+                } else {
+                    console.log('No active session found');
+                    setUser(null);
                 }
             } catch (err) {
-                console.error('Auth error:', err);
-                localStorage.removeItem('token');
+                console.error('Session check error:', err);
+                setError(err.message);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
         };
 
-        checkAuth();
+        checkSession();
+
+        // Set up auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                console.log('Auth state changed:', event);
+
+                if (event === 'SIGNED_IN' && session) {
+                    console.log('User signed in:', session.user.id);
+                    setUser(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    console.log('User signed out');
+                    setUser(null);
+                } else if (event === 'USER_UPDATED' && session) {
+                    console.log('User updated:', session.user.id);
+                    setUser(session.user);
+                }
+            }
+        );
+
+        // Clean up subscription on unmount
+        return () => {
+            if (subscription) subscription.unsubscribe();
+        };
     }, []);
 
-    // Register a new user
-    const register = async (userData) => {
+    // Register new user
+    const register = async (email, password) => {
         try {
-            setError(null);
-            console.log('Registering user with data:', userData);
-            const response = await axios.post('/api/auth/register', userData);
-            console.log('Registration response:', response.data);
-            localStorage.setItem('token', response.data.token);
-            setUser(response.data.user);
-            return response.data;
+            console.log('Registering new user with email:', email);
+
+            const { data: { user }, error } = await supabase.auth.signUp({
+                email,
+                password
+            });
+
+            if (error) {
+                console.error('Registration error:', error);
+                return { success: false, error: error.message };
+            }
+
+            console.log('Registration successful, user:', user.id);
+
+            return { success: true, user };
         } catch (err) {
             console.error('Registration error:', err);
-            const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
-            setError(errorMessage);
-            throw new Error(errorMessage);
+            return { success: false, error: err.message };
         }
     };
 
     // Login user
-    const login = async (credentials) => {
+    const login = async (email, password) => {
         try {
-            setError(null);
-            const response = await axios.post('/api/auth/login', credentials);
-            localStorage.setItem('token', response.data.token);
-            setUser(response.data.user);
-            return response.data;
+            console.log('Logging in user with email:', email);
+
+            const { data: { session, user }, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) {
+                console.error('Login error:', error);
+                return { success: false, error: error.message };
+            }
+
+            console.log('Login successful, user:', user.id);
+
+            return { success: true, user, session };
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Login failed. Please try again.';
-            setError(errorMessage);
-            throw new Error(errorMessage);
+            console.error('Login error:', err);
+            return { success: false, error: err.message };
         }
     };
 
     // Logout user
-    const logout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
-    };
-
-    // Handle Google OAuth success
-    const handleGoogleSuccess = (token) => {
+    const logout = async () => {
         try {
-            const decodedToken = jwtDecode(token);
-            localStorage.setItem('token', token);
-            setUser({
-                id: decodedToken.id,
-                email: decodedToken.email,
-                name: decodedToken.name
-            });
+            console.log('Logging out user');
+
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                console.error('Logout error:', error);
+                throw error;
+            }
+
+            console.log('Logout successful');
         } catch (err) {
-            console.error('Google auth error:', err);
-            setError('Google authentication failed');
+            console.error('Logout error:', err);
+            setError(err.message);
+            throw err;
         }
     };
 
-    // Get initial session
-    useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const { data, error } = await supabase.auth.getSession();
-                
-                if (error) {
-                    console.error("Session check error:", error);
-                    throw error;
-                }
-                
-                console.log("Session data:", data);
-                
-                if (data.session) {
-                    setUser(data.session.user);
-                    console.log("User set from session:", data.session.user);
-                } else {
-                    setUser(null);
-                    console.log("No active session found");
-                }
-            } catch (err) {
-                console.error("Error checking session:", err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
+    // Get current session
+    const getSession = async () => {
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error('Get session error:', error);
+                throw error;
             }
-        };
-        
-        checkSession();
-        
-        // Set up auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-                console.log("Auth state changed:", event, session);
-                setUser(session?.user || null);
-            }
-        );
-        
-        return () => {
-            subscription?.unsubscribe();
-        };
-    }, []);
+
+            return { session };
+        } catch (err) {
+            console.error('Get session error:', err);
+            return { session: null, error: err.message };
+        }
+    };
 
     const value = {
         user,
@@ -170,10 +161,14 @@ export const AuthProvider = ({ children }) => {
         register,
         login,
         logout,
-        handleGoogleSuccess
+        getSession
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
 
 export default AuthContext;

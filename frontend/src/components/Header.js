@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Container, Dropdown, Badge, Toast, ToastContainer } from 'react-bootstrap';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { FaShoppingCart, FaUser, FaSignOutAlt, FaHistory } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
-import { FaShoppingCart, FaUser, FaSignOutAlt, FaCog, FaHistory } from 'react-icons/fa';
+import { getUserCart } from '../utils/supabase';
 import supabase from '../utils/supabase';
 import '../styles/Header.css';
 
 const Header = () => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [cartCount, setCartCount] = useState(0);
     const [showToast, setShowToast] = useState(false);
 
-    // Fetch cart count when user changes
+    // Debug log for current authentication state
     useEffect(() => {
+        console.log('Header - Auth state changed:', user ? `User ${user.id} is logged in` : 'No user logged in');
+
+        // When user state changes, fetch cart count
         if (user) {
             fetchCartCount();
         } else {
@@ -20,37 +25,44 @@ const Header = () => {
         }
     }, [user]);
 
+    // Fetch cart count
     const fetchCartCount = async () => {
         try {
-            if (!user || !user.id) return;
+            if (!user) return;
 
-            const { data, error } = await supabase
-                .from('cart_items')
-                .select('id')
-                .eq('user_id', user.id.toString());
+            console.log('Fetching cart count for user:', user.id);
 
-            if (error) {
+            // Get current items using our utility function
+            const { success, data, error } = await getUserCart(user.id);
+
+            if (!success || error) {
                 console.error('Error fetching cart count:', error);
                 return;
             }
 
-            setCartCount(data?.length || 0);
+            // Calculate total quantity
+            const totalItems = data.reduce((total, item) => total + item.quantity, 0);
+            console.log(`Cart count fetched: ${totalItems} items`);
+            setCartCount(totalItems);
         } catch (err) {
             console.error('Error fetching cart count:', err);
         }
     };
 
-    const handleProfileClick = (e) => {
-        // Prevent default navigation
-        e.preventDefault();
+    const handleLogout = async () => {
+        try {
+            console.log('User logging out');
+            await logout();
+            console.log('Logout successful');
+            navigate('/');
+        } catch (err) {
+            console.error('Error logging out:', err);
+        }
+    };
 
-        // Show toast message
+    const handleProfileClick = () => {
+        // Set toast message for profile page (currently not implemented)
         setShowToast(true);
-
-        // Hide toast after 3 seconds
-        setTimeout(() => {
-            setShowToast(false);
-        }, 3000);
     };
 
     return (
@@ -69,7 +81,6 @@ const Header = () => {
                             <Nav.Link as={NavLink} to="/restaurants" className="nav-link-custom">
                                 Restaurants
                             </Nav.Link>
-
                             <Nav.Link as={NavLink} to="/catering" className="nav-link-custom">
                                 Catering
                             </Nav.Link>
@@ -92,7 +103,7 @@ const Header = () => {
                                             <div className="d-flex align-items-center profile-link">
                                                 <FaUser className="icon" />
                                                 <span className="d-none d-md-inline ms-1 text-white">
-                                                    {user.name ? user.name.split(' ')[0] : 'Profile'}
+                                                    {user.user_metadata?.name || user.email.split('@')[0] || 'Profile'}
                                                 </span>
                                             </div>
                                         </Dropdown.Toggle>
@@ -106,7 +117,7 @@ const Header = () => {
                                             </Dropdown.Item>
 
                                             <Dropdown.Divider />
-                                            <Dropdown.Item onClick={logout} className="logout-item">
+                                            <Dropdown.Item onClick={handleLogout} className="logout-item">
                                                 <FaSignOutAlt className="dropdown-icon" /> Logout
                                             </Dropdown.Item>
                                         </Dropdown.Menu>
@@ -126,6 +137,21 @@ const Header = () => {
                     </Navbar.Collapse>
                 </Container>
             </Navbar>
+
+            {/* Toast for profile click */}
+            <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1 }}>
+                <Toast
+                    show={showToast}
+                    onClose={() => setShowToast(false)}
+                    delay={3000}
+                    autohide
+                >
+                    <Toast.Header>
+                        <strong className="me-auto">Info</strong>
+                    </Toast.Header>
+                    <Toast.Body>Profile page is coming soon!</Toast.Body>
+                </Toast>
+            </ToastContainer>
         </>
     );
 };

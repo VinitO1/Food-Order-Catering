@@ -1,7 +1,5 @@
 # BC Food Feast - Food Ordering & Catering Platform
 
-![BC Food Feast Logo](frontend/public/logo.png)
-
 BC Food Feast is a comprehensive food ordering and catering platform designed for British Columbia restaurants. The application allows users to browse restaurants, order food for delivery or pickup, and request catering services for events.
 
 ## 🍽️ Features
@@ -13,10 +11,11 @@ BC Food Feast is a comprehensive food ordering and catering platform designed fo
 - **Online Ordering**: Place food orders for delivery or pickup
 - **Catering Services**: Request catering for events with customizable options
 - **User Profiles**: Save favorite restaurants, view order history, and manage payment methods
-- **Featured Items**: Discover popular dishes across different categories
+- **Order Tracking**: Real-time updates on order status (pending, approved, delivered)
+- **Cart Management**: Add, remove, and update quantities of items in cart
 - **Contact Support**: Reach out to customer service through the contact form
 
-### For Restaurants
+### For Restaurants (Admin Dashboard)
 
 - **Menu Management**: Easily update menu items, prices, and availability
 - **Order Processing**: Receive and manage incoming orders
@@ -34,40 +33,46 @@ BC Food Feast is a comprehensive food ordering and catering platform designed fo
 - **Context API**: For state management
 - **CSS**: Custom styling for components
 
-### Backend
+### Backend & Database
 
-- **Express.js**: Lightweight server for API endpoints
-- **Supabase**: Backend-as-a-Service for database, authentication, and storage
-- **PostgreSQL**: Relational database (via Supabase)
-- **Node.js**: JavaScript runtime environment
-
-### Authentication
-
-- **Supabase Auth**: Email/password authentication
-- **Row Level Security**: For data protection and user-specific content
+- **Supabase**: Backend-as-a-Service for:
+  - PostgreSQL database
+  - Authentication and user management
+  - Row Level Security (RLS) for data protection
+  - Storage for images and files
+- **Express.js**: Lightweight server for additional API endpoints (optional)
 
 ## 📁 Project Structure
 
 ```
-cateringfoodreservatiron/
+Food-Order-Catering/
 ├── frontend/                  # React frontend application
 │   ├── public/                # Static files
-│   └── src/                   # Source code
-│       ├── components/        # Reusable UI components
-│       ├── contexts/          # React contexts
-│       ├── pages/             # Page components
-│       ├── styles/            # CSS styles
-│       ├── utils/             # Utility functions
-│       └── App.js             # Main app component
+│   ├── src/                   # Source code
+│   │   ├── components/        # Reusable UI components
+│   │   ├── contexts/          # React contexts for state management
+│   │   ├── pages/             # Page components (Restaurants, Cart, Checkout, etc.)
+│   │   ├── styles/            # CSS styles for components
+│   │   ├── utils/             # Utility functions and Supabase client
+│   │   ├── App.js             # Main app component with routing
+│   │   └── index.js           # Entry point
+│   ├── .env                   # Environment variables for development
+│   ├── .env.production        # Environment variables for production
+│   ├── .gitignore             # Git ignore file for frontend
+│   ├── package.json           # Frontend dependencies
+│   └── cleanup.sh             # Script to prepare for deployment
 │
-├── backend/                   # Express backend
+├── backend/                   # Express backend (optional)
 │   ├── config/                # Configuration files
 │   ├── routes/                # API routes
 │   ├── index.js               # Entry point
-│   └── .env                   # Environment variables
+│   ├── .env                   # Environment variables
+│   ├── .gitignore             # Git ignore file for backend
+│   └── package.json           # Backend dependencies
 │
-├── database/                  # Database scripts and migrations
-├── .gitignore                 # Git ignore file
+├── .gitignore                 # Root Git ignore file
+├── vercel.json                # Vercel deployment configuration
+├── DEPLOYMENT.md              # Detailed deployment instructions
 └── README.md                  # Project documentation
 ```
 
@@ -84,8 +89,8 @@ cateringfoodreservatiron/
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/cateringfoodreservatiron.git
-   cd cateringfoodreservatiron
+   git clone https://github.com/yourusername/Food-Order-Catering.git
+   cd Food-Order-Catering
    ```
 
 2. Install frontend dependencies:
@@ -95,7 +100,7 @@ cateringfoodreservatiron/
    npm install
    ```
 
-3. Install backend dependencies:
+3. Install backend dependencies (if using the Express backend):
 
    ```bash
    cd ../backend
@@ -104,13 +109,17 @@ cateringfoodreservatiron/
 
 4. Set up environment variables:
 
-   - Create a `.env` file in the frontend directory based on `.env.example`
-   - Update the backend `.env` file with your Supabase credentials
+   - Create a `.env` file in the frontend directory with:
+     ```
+     REACT_APP_SUPABASE_URL=your_supabase_url
+     REACT_APP_SUPABASE_KEY=your_supabase_anon_key
+     REACT_APP_API_URL=http://localhost:5000 (if using backend)
+     ```
 
 5. Start the development servers:
 
    ```bash
-   # In the backend directory
+   # In the backend directory (if using Express backend)
    npm run dev
 
    # In the frontend directory (in a new terminal)
@@ -124,39 +133,62 @@ cateringfoodreservatiron/
 The application uses the following main tables in Supabase:
 
 - **users**: User accounts and profiles
-- **restaurants**: Restaurant information
-- **menu_items**: Food items available at restaurants
-- **orders**: Customer orders
+- **restaurants**: Restaurant information with details like name, address, cuisine type
+- **menu_items**: Food items available at restaurants (or individual menu tables per restaurant)
+- **cart_items**: Items in a user's shopping cart with quantity and price
+- **orders**: Customer orders with status and payment information
 - **order_items**: Individual items in an order
-- **cart_items**: Items in a user's shopping cart
 - **catering_requests**: Catering service requests
-- **contact_messages**: Customer inquiries and feedback
 
-## 🔐 Authentication
+## 🔐 Security
 
-The application uses Supabase Authentication for user management. Row Level Security (RLS) policies are implemented to ensure users can only access their own data.
+- **Supabase Authentication**: Email/password authentication for users
+- **Row Level Security (RLS)**: Database policies to ensure users can only access their own data
+- **Protected Routes**: Frontend route protection for authenticated areas
+- **Environment Variables**: Sensitive data stored in environment variables
 
-## 📱 Responsive Design
+## 🚀 Deployment
 
-BC Food Feast is designed to work seamlessly across devices of all sizes:
+### Deploying to Vercel
 
-- Desktop computers
-- Tablets
-- Mobile phones
+1. Prepare your project:
 
-## 🌐 Deployment
+   ```bash
+   cd frontend
+   chmod +x cleanup.sh
+   ./cleanup.sh
+   ```
 
-### Frontend Deployment
+2. Create a production environment file:
 
-The frontend can be deployed to services like Vercel, Netlify, or AWS Amplify.
+   ```bash
+   cp .env.production.template .env.production
+   ```
 
-### Backend Deployment
+   Then update with your production Supabase credentials.
 
-The backend can be deployed to services like Heroku, AWS Elastic Beanstalk, or Digital Ocean.
+3. Deploy using GitHub:
+   - Push your code to GitHub
+   - Import the repository in Vercel
+   - Set environment variables in Vercel dashboard
+   - Deploy your project
+
+For detailed deployment instructions, see the [DEPLOYMENT.md](DEPLOYMENT.md) file.
+
+### Updating Supabase Settings
+
+After deployment, update your Supabase authentication settings with your Vercel domain URL in the "Site URL" and "Redirect URLs" fields.
+
+## 🧪 Testing
+
+To run tests:
+
+```bash
+cd frontend
+npm test
+```
 
 ## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -164,3 +196,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👥 Authors
+
+- Your Name - Initial work

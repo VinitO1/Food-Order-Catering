@@ -38,17 +38,20 @@ const OrderHistoryPage = () => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
+            console.log('Fetching orders for user:', user.id);
 
             const { data, error } = await supabase
-                .from('cx_orders')
+                .from('orders')
                 .select('*')
-                .eq('user_id', user.id.toString())
+                .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 
             if (error) {
+                console.error('Error fetching orders:', error);
                 throw error;
             }
 
+            console.log('Fetched orders:', data);
             setOrders(data || []);
 
             // Fetch order items for each order
@@ -69,17 +72,20 @@ const OrderHistoryPage = () => {
 
         try {
             setRefreshing(true);
+            console.log('Refreshing orders for user:', user.id);
 
             const { data, error } = await supabase
-                .from('cx_orders')
+                .from('orders')
                 .select('*')
-                .eq('user_id', user.id.toString())
+                .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 
             if (error) {
+                console.error('Error refreshing orders:', error);
                 throw error;
             }
 
+            console.log('Refreshed orders:', data);
             setOrders(data || []);
 
             // Fetch order items for each order
@@ -97,20 +103,19 @@ const OrderHistoryPage = () => {
 
     const fetchOrderItems = async (orderIds) => {
         try {
+            console.log('Fetching order items for order IDs:', orderIds);
+
             const { data, error } = await supabase
-                .from('cx_order_items')
-                .select(`
-                    *,
-                    restaurants:restaurant_id (
-                        id,
-                        name
-                    )
-                `)
+                .from('order_items')
+                .select('*')
                 .in('order_id', orderIds);
 
             if (error) {
+                console.error('Error fetching order items:', error);
                 throw error;
             }
+
+            console.log('Fetched order items:', data);
 
             // Group items by order_id
             const itemsByOrder = {};
@@ -120,6 +125,35 @@ const OrderHistoryPage = () => {
                 }
                 itemsByOrder[item.order_id].push(item);
             });
+
+            // Fetch restaurants for these items
+            const restaurantIds = [...new Set(data.map(item => item.restaurant_id))];
+            if (restaurantIds.length > 0) {
+                const { data: restaurants, error: restaurantError } = await supabase
+                    .from('restaurants')
+                    .select('id, name')
+                    .in('id', restaurantIds);
+
+                if (restaurantError) {
+                    console.error('Error fetching restaurants:', restaurantError);
+                } else if (restaurants) {
+                    console.log('Fetched restaurants:', restaurants);
+
+                    // Create a map of restaurant ids to names
+                    const restaurantMap = {};
+                    restaurants.forEach(restaurant => {
+                        restaurantMap[restaurant.id] = restaurant.name;
+                    });
+
+                    // Add restaurant names to items
+                    Object.keys(itemsByOrder).forEach(orderId => {
+                        itemsByOrder[orderId] = itemsByOrder[orderId].map(item => ({
+                            ...item,
+                            restaurant_name: restaurantMap[item.restaurant_id] || `Restaurant ${item.restaurant_id}`
+                        }));
+                    });
+                }
+            }
 
             setOrderItems(itemsByOrder);
         } catch (err) {
@@ -157,6 +191,7 @@ const OrderHistoryPage = () => {
 
     const getPaymentMethodIcon = (method) => {
         switch (method) {
+            case 'credit-card':
             case 'credit_card':
                 return <FaCreditCard className="payment-icon" />;
             case 'cash':
@@ -283,11 +318,11 @@ const OrderHistoryPage = () => {
                                                                             <span className="quantity">{item.quantity}x</span> {item.item_name}
                                                                         </div>
                                                                         <div className="restaurant-name">
-                                                                            {item.restaurants?.name || 'Restaurant'}
+                                                                            {item.restaurant_name || `Restaurant ${item.restaurant_id}`}
                                                                         </div>
                                                                     </div>
                                                                     <div className="item-price">
-                                                                        ${parseFloat(item.subtotal).toFixed(2)}
+                                                                        ${(parseFloat(item.price) * item.quantity).toFixed(2)}
                                                                     </div>
                                                                 </div>
                                                             ))}
@@ -295,16 +330,24 @@ const OrderHistoryPage = () => {
 
                                                         <div className="price-summary">
                                                             <div className="price-row">
-                                                                <span>Subtotal</span>
-                                                                <span>${parseFloat(order.subtotal).toFixed(2)}</span>
+                                                                <span>Items Subtotal</span>
+                                                                <span>${(parseFloat(order.subtotal || 0) - 5).toFixed(2)}</span>
                                                             </div>
                                                             <div className="price-row">
-                                                                <span>Tax (12%)</span>
-                                                                <span>${parseFloat(order.tax).toFixed(2)}</span>
+                                                                <span>Flat Fee</span>
+                                                                <span>$5.00</span>
+                                                            </div>
+                                                            <div className="price-row">
+                                                                <span>Tax (12% GST + PST)</span>
+                                                                <span>${parseFloat(order.tax || 0).toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="price-row">
+                                                                <span>Delivery Fee (included in total)</span>
+                                                                <span>$5.99</span>
                                                             </div>
                                                             <div className="price-row total">
                                                                 <span>Total</span>
-                                                                <span>${parseFloat(order.total).toFixed(2)}</span>
+                                                                <span>${parseFloat(order.total || 0).toFixed(2)}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -314,45 +357,54 @@ const OrderHistoryPage = () => {
                                                     <div className="detail-section">
                                                         <h5>Delivery Information</h5>
                                                         <div className="delivery-details">
-                                                            <div className="detail-row">
-                                                                <FaMapMarkerAlt className="detail-icon" />
-                                                                <div className="detail-text">
-                                                                    <strong>Address:</strong><br />
-                                                                    {order.delivery_address}<br />
-                                                                    {order.delivery_city}, {order.delivery_province} {order.delivery_postal_code}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="detail-row">
-                                                                <FaPhone className="detail-icon" />
-                                                                <div className="detail-text">
-                                                                    <strong>Phone:</strong><br />
-                                                                    {order.contact_phone}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="detail-row">
-                                                                <FaEnvelope className="detail-icon" />
-                                                                <div className="detail-text">
-                                                                    <strong>Email:</strong><br />
-                                                                    {order.contact_email}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="detail-row">
-                                                                {getPaymentMethodIcon(order.payment_method)}
-                                                                <div className="detail-text">
-                                                                    <strong>Payment Method:</strong><br />
-                                                                    {order.payment_method === 'credit_card' ? 'Credit Card' : 'Cash on Delivery'}
-                                                                </div>
-                                                            </div>
-
-                                                            {order.special_instructions && (
+                                                            {order.delivery_address && (
                                                                 <div className="detail-row">
-                                                                    <FaInfoCircle className="detail-icon" />
+                                                                    <FaMapMarkerAlt className="detail-icon" />
                                                                     <div className="detail-text">
-                                                                        <strong>Special Instructions:</strong><br />
-                                                                        {order.special_instructions}
+                                                                        <strong>Address:</strong><br />
+                                                                        {order.delivery_address}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {(order.address || order.city) && (
+                                                                <div className="detail-row">
+                                                                    <FaMapMarkerAlt className="detail-icon" />
+                                                                    <div className="detail-text">
+                                                                        <strong>Address:</strong><br />
+                                                                        {order.address}
+                                                                        {order.city && <span>, {order.city}</span>}
+                                                                        {order.postal_code && <span>, {order.postal_code}</span>}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {(order.customer_phone || order.phone) && (
+                                                                <div className="detail-row">
+                                                                    <FaPhone className="detail-icon" />
+                                                                    <div className="detail-text">
+                                                                        <strong>Phone:</strong><br />
+                                                                        {order.customer_phone || order.phone}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {(order.customer_email || order.email) && (
+                                                                <div className="detail-row">
+                                                                    <FaEnvelope className="detail-icon" />
+                                                                    <div className="detail-text">
+                                                                        <strong>Email:</strong><br />
+                                                                        {order.customer_email || order.email}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {order.payment_method && (
+                                                                <div className="detail-row">
+                                                                    {getPaymentMethodIcon(order.payment_method)}
+                                                                    <div className="detail-text">
+                                                                        <strong>Payment Method:</strong><br />
+                                                                        {order.payment_method === 'credit-card' ? 'Credit Card' : 'Cash on Delivery'}
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -379,10 +431,10 @@ const OrderHistoryPage = () => {
                                                             if (window.confirm('Are you sure you want to cancel this order?')) {
                                                                 try {
                                                                     const { error } = await supabase
-                                                                        .from('cx_orders')
+                                                                        .from('orders')
                                                                         .update({ status: 'cancelled' })
                                                                         .eq('id', order.id)
-                                                                        .eq('user_id', user.id.toString());
+                                                                        .eq('user_id', user.id);
 
                                                                     if (error) throw error;
 

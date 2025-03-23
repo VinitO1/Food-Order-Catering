@@ -41,16 +41,25 @@ function App() {
               <Route path="/featured" element={<FeaturedItemsPage />} />
               <Route path="/about" element={<AboutUsPage />} />
               <Route path="/contact" element={<ContactPage />} />
-           
+
 
               {/* Protected routes */}
-              <Route path="/cart" element={<CartPage />} />
+              <Route path="/cart" element={
+                <ProtectedRoute>
+                  <CartPage />
+                </ProtectedRoute>
+              } />
               <Route path="/checkout" element={
                 <ProtectedRoute>
                   <CheckoutPage />
                 </ProtectedRoute>
               } />
               <Route path="/order-history" element={
+                <ProtectedRoute>
+                  <OrderHistoryPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/orders" element={
                 <ProtectedRoute>
                   <OrderHistoryPage />
                 </ProtectedRoute>

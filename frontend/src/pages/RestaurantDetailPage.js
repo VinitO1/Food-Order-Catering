@@ -1,9 +1,26 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Spinner, Alert, Tabs, Tab, Badge, ListGroup, Image } from 'react-bootstrap';
 import { useParams, Link } from 'react-router-dom';
 import { FaMapMarkerAlt, FaShoppingCart, FaStar, FaRegStar } from 'react-icons/fa';
-import supabase from '../utils/supabase';
+import supabase, { fetchRestaurant, fetchMenuItems, addToCart, RESTAURANT_MENU_TABLES } from '../utils/supabase';
 import { useAuth } from '../contexts/AuthContext';
+
+// Default images for restaurants based on their ID
+const DEFAULT_IMAGES = {
+    1: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070',
+    2: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070',
+    3: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2074',
+    4: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070',
+    5: 'https://images.unsplash.com/photo-1585937421612-70a008356c36?q=80&w=2036',
+    6: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=2070',
+    7: 'https://images.unsplash.com/photo-1690303587192-e4a51ff1c1e5?q=80&w=2070',
+    8: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2074',
+    9: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=2025',
+    10: 'https://images.unsplash.com/photo-1615398562477-8572aa0a4c48?q=80&w=2069',
+};
+
+// Default cuisine type (since it's missing from the database)
+const DEFAULT_CUISINE = 'Indian';
 
 const RestaurantDetailPage = () => {
     const { id } = useParams();
@@ -19,20 +36,6 @@ const RestaurantDetailPage = () => {
 
     // Use the useAuth hook
     const { user } = useAuth();
-
-    // Use useMemo to prevent the object from being recreated on every render
-    const RESTAURANT_MENU_TABLES = useMemo(() => ({
-        '1': 'vijs_menu',
-        '2': 'sula_indian_restaurant_menu',
-        '3': 'agra_tandoori_restaurant_menu',
-        '4': 'fishhook_menu',
-        '5': 'spice_valley_indian_cuisine_menu',
-        '6': 'gians_indian_cuisine_menu',
-        '7': 'pabla_curry_house_menu',
-        '8': 'shandhar_hut_indian_cuisine_menu',
-        '9': 'indias_most_wanted_menu',
-        '10': 'tandoori_bites_menu'
-    }), []);
 
     // Fetch user's cart when user changes
     useEffect(() => {
@@ -74,16 +77,13 @@ const RestaurantDetailPage = () => {
         const fetchRestaurantData = async () => {
             try {
                 setLoading(true);
+                console.log('Fetching restaurant data for ID:', id);
 
                 // Fetch restaurant details
-                console.log(`Fetching restaurant with ID: ${id}`);
-                const { data: restaurantData, error: restaurantError } = await supabase
-                    .from('restaurants')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
+                const { data: restaurantData, error: restaurantError } = await fetchRestaurant(id);
 
                 if (restaurantError) {
+                    console.error('Error fetching restaurant:', restaurantError);
                     throw new Error(`Error fetching restaurant: ${restaurantError.message}`);
                 }
 
@@ -91,174 +91,79 @@ const RestaurantDetailPage = () => {
                     throw new Error('Restaurant not found');
                 }
 
-                setRestaurant(restaurantData);
-                console.log('Restaurant data:', restaurantData);
+                // Process restaurant data with default values for missing fields
+                const processedRestaurant = {
+                    ...restaurantData,
+                    // Add default image if missing
+                    image_url: DEFAULT_IMAGES[restaurantData.id] || 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2074',
+                    // Add default cuisine type if missing
+                    cuisine_type: restaurantData.cuisine_type || DEFAULT_CUISINE,
+                    // Convert province to shorter form if it's British Columbia
+                    province: restaurantData.province === 'British Columbia' ? 'BC' : restaurantData.province,
+                    // Ensure catering_available is a boolean
+                    catering_available: restaurantData.catering_available === 'true' || restaurantData.catering_available === true
+                };
 
-                // Get the appropriate menu table name for this restaurant
-                const menuTableName = RESTAURANT_MENU_TABLES[id];
-                if (!menuTableName) {
-                    console.warn(`No menu table mapping found for restaurant ID ${id}`);
-                    setMenuItems([]);
-                    return;
-                }
+                console.log('Restaurant data processed:', processedRestaurant);
+                setRestaurant(processedRestaurant);
 
-                // Fetch menu items from the restaurant-specific table
-                console.log(`Fetching menu items from table: ${menuTableName}`);
-                const { data: menuData, error: menuError } = await supabase
-                    .from(menuTableName)
-                    .select('*')
-                    .order('name', { ascending: true });
+                // Fetch menu items
+                const { menuItems, categories, itemsByCategory, error: menuError } = await fetchMenuItems(id);
 
                 if (menuError) {
-                    console.error(`Error fetching menu items from ${menuTableName}:`, menuError);
-                    // Try fallback to menu_items table with restaurant_id filter
-                    console.log(`Trying fallback to menu_items table for restaurant ID ${id}`);
-                    const { data: fallbackData, error: fallbackError } = await supabase
-                        .from('menu_items')
-                        .select('*')
-                        .eq('restaurant_id', id)
-                        .order('category', { ascending: true })
-                        .order('name', { ascending: true });
-
-                    if (fallbackError) {
-                        throw new Error(`Error fetching menu items: ${fallbackError.message}`);
-                    }
-
-                    if (fallbackData && fallbackData.length > 0) {
-                        console.log('Found menu items in fallback table:', fallbackData.length);
-                        processMenuData(fallbackData);
-                    } else {
-                        console.log('No menu items found in fallback table');
-                        setMenuItems([]);
-                    }
-                } else {
-                    console.log('Menu items found:', menuData?.length || 0);
-                    processMenuData(menuData || []);
+                    console.error('Error fetching menu items:', menuError);
+                    throw new Error(`Error fetching menu items: ${menuError.message}`);
                 }
+
+                console.log('Menu items fetched:', menuItems.length, 'items in', categories.length, 'categories');
+
+                setMenuItems(menuItems);
+                setMenuCategories(categories);
+                setMenuItemsByCategory(itemsByCategory);
+
+                // Set default active category
+                if (categories.length > 0) {
+                    const preferredCategories = ['Starters', 'Main Course', 'Appetizers'];
+                    const matchingCategory = preferredCategories.find(cat => categories.includes(cat)) || categories[0];
+                    setActiveCategory(matchingCategory);
+                }
+
             } catch (err) {
-                console.error('Error:', err);
+                console.error('Error fetching restaurant data:', err);
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        // Helper function to process menu data
-        const processMenuData = (menuData) => {
-            setMenuItems(menuData);
-
-            if (menuData.length > 0) {
-                // Determine categories - check if category field exists
-                let categories = [];
-                if (menuData[0].category) {
-                    // If category field exists, use it
-                    categories = [...new Set(menuData.map(item => item.category))];
-                } else {
-                    // Otherwise, categorize based on item names or descriptions
-                    categories = categorizeMenuItems(menuData);
-                }
-
-                setMenuCategories(categories);
-                console.log('Menu categories:', categories);
-
-                // Set initial active category
-                if (categories.length > 0) {
-                    setActiveCategory(categories[0]);
-                }
-
-                // Group menu items by category
-                const itemsByCategory = {};
-                categories.forEach(category => {
-                    if (menuData[0].category) {
-                        itemsByCategory[category] = menuData.filter(item => item.category === category);
-                    } else {
-                        itemsByCategory[category] = menuData.filter(item =>
-                            determineCategory(item.name, item.description || '') === category
-                        );
-                    }
-                });
-                setMenuItemsByCategory(itemsByCategory);
-                console.log('Menu items by category:', itemsByCategory);
-            }
-        };
-
-        // Helper function to categorize menu items if no category field exists
-        const categorizeMenuItems = (menuData) => {
-            const categorizedItems = menuData.map(item => ({
-                ...item,
-                determinedCategory: determineCategory(item.name, item.description || '')
-            }));
-
-            return [...new Set(categorizedItems.map(item => item.determinedCategory))];
-        };
-
-        // Helper function to determine category based on item name/description
-        const determineCategory = (name, description) => {
-            const nameLower = name.toLowerCase();
-            const descLower = description.toLowerCase();
-
-            // Check for starters/appetizers
-            if (
-                nameLower.includes('pakora') ||
-                nameLower.includes('samosa') ||
-                nameLower.includes('tikki') ||
-                nameLower.includes('chaat') ||
-                nameLower.includes('kebab') ||
-                nameLower.includes('bhaji') ||
-                nameLower.includes('appetizer') ||
-                nameLower.includes('starter') ||
-                descLower.includes('appetizer') ||
-                descLower.includes('starter')
-            ) {
-                return 'Starters';
-            }
-
-            // Check for desserts
-            if (
-                nameLower.includes('gulab') ||
-                nameLower.includes('kheer') ||
-                nameLower.includes('kulfi') ||
-                nameLower.includes('halwa') ||
-                nameLower.includes('rasmalai') ||
-                nameLower.includes('jalebi') ||
-                nameLower.includes('dessert') ||
-                descLower.includes('sweet') ||
-                descLower.includes('dessert')
-            ) {
-                return 'Dessert';
-            }
-
-            // Default to main course
-            return 'Main Course';
-        };
-
         if (id) {
             fetchRestaurantData();
         }
-    }, [id, RESTAURANT_MENU_TABLES]);
+    }, [id]);
 
+    // Check if there's a selected category in sessionStorage
     useEffect(() => {
-        // Check if there's an activeCategory in sessionStorage
-        const savedCategory = sessionStorage.getItem('activeCategory');
-        if (savedCategory) {
-            // Find the matching category in menuCategories
-            const matchingCategory = menuCategories.find(
-                category => category.toLowerCase() === savedCategory.toLowerCase()
-            );
-            
-            if (matchingCategory) {
+        if (menuCategories.length > 0) {
+            const savedCategory = sessionStorage.getItem('activeCategory');
+            if (savedCategory && menuCategories.includes(savedCategory)) {
+                setActiveCategory(savedCategory);
+            } else {
+                // Find "Starters" or "Main Course" or fallback to first category
+                const preferredCategories = ['Starters', 'Main Course', 'Appetizers'];
+                const matchingCategory = preferredCategories.find(cat => menuCategories.includes(cat)) || menuCategories[0];
                 setActiveCategory(matchingCategory);
             }
-            
+
             // Clear the sessionStorage after using it
             sessionStorage.removeItem('activeCategory');
         }
     }, [menuCategories]);
 
-    const addToCart = async (item) => {
+    const handleAddToCart = async (item) => {
         try {
             // Check if user is logged in
             if (!user) {
+                console.log('User not authenticated, showing login message');
                 setCartMessage({
                     type: 'warning',
                     text: 'Please sign in to add items to your cart'
@@ -266,46 +171,53 @@ const RestaurantDetailPage = () => {
                 return;
             }
 
-            console.log("Adding to cart for user:", user);
+            // Get current session before adding to cart
+            const { data: { session } } = await supabase.auth.getSession();
 
-            // Ensure user ID is a string
-            const userIdStr = user.id.toString();
-
-            // Prepare cart item data
-            const cartItem = {
-                user_id: userIdStr,
-                menu_item_id: item.id ? item.id.toString() : `${restaurant.id}_${item.name}`,
-                restaurant_id: parseInt(restaurant.id),
-                item_name: item.name,
-                price: parseFloat(item.price || 0),
-                quantity: 1
-            };
-
-            console.log("Cart item to insert:", cartItem);
-
-            // Add to cart_items table
-            const { data, error } = await supabase
-                .from('cart_items')
-                .insert(cartItem)
-                .select();
-
-            if (error) {
-                console.error('Error adding to cart:', error);
+            if (!session) {
+                console.log("No valid session found, redirecting to login");
                 setCartMessage({
-                    type: 'danger',
-                    text: `Failed to add ${item.name} to cart: ${error.message}`
+                    type: 'warning',
+                    text: 'Your session has expired. Please sign in again to add items to your cart.'
                 });
                 return;
+            }
+
+            console.log("Adding to cart with valid session for user:", user.id);
+            console.log("Menu item:", item);
+            console.log("Restaurant ID:", restaurant.id);
+
+            // Add to cart using our updated utility function
+            const { success, data, error, message } = await addToCart(item, user.id, restaurant.id);
+
+            if (!success || error) {
+                throw new Error(error);
             }
 
             console.log("Successfully added to cart:", data);
 
             // Update local cart state
-            setCart([...cart, { ...data[0], restaurants: { name: restaurant.name } }]);
+            const newCartItem = {
+                ...data,
+                restaurants: { name: restaurant.name }
+            };
+
+            // Check if item is already in cart (to avoid duplicates in UI)
+            const itemExists = cart.some(cartItem => cartItem.id === data.id);
+            if (!itemExists) {
+                setCart([...cart, newCartItem]);
+            } else {
+                // Update existing item
+                setCart(cart.map(cartItem =>
+                    cartItem.id === data.id
+                        ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                        : cartItem
+                ));
+            }
 
             setCartMessage({
                 type: 'success',
-                text: `Added ${item.name} to cart from ${restaurant.name}`
+                text: message || `Added ${item.name} to cart from ${restaurant.name}`
             });
 
             // Clear message after 3 seconds
@@ -316,7 +228,7 @@ const RestaurantDetailPage = () => {
             console.error('Error adding to cart:', err);
             setCartMessage({
                 type: 'danger',
-                text: `An error occurred: ${err.message}`
+                text: `Error adding to cart: ${err.message}`
             });
         }
     };
@@ -368,16 +280,13 @@ const RestaurantDetailPage = () => {
                 <Card.Body>
                     <Row>
                         <Col md={4}>
-                            {restaurant.image_url ? (
-                                <Image
-                                    src={restaurant.image_url}
-                                    alt={restaurant.name}
-                                    fluid
-                                    className="restaurant-image"
-                                />
-                            ) : (
-                                <div className="placeholder-image">No image available</div>
-                            )}
+                            <Image
+                                src={restaurant.image_url}
+                                alt={restaurant.name}
+                                fluid
+                                className="restaurant-image rounded"
+                                style={{ maxHeight: '250px', objectFit: 'cover' }}
+                            />
                         </Col>
                         <Col md={8}>
                             <div className="d-flex align-items-center mb-2">
@@ -395,6 +304,13 @@ const RestaurantDetailPage = () => {
                                 ))}
                                 <span className="ms-2 text-muted">(24 reviews)</span>
                             </div>
+
+                            {/* Display cart message */}
+                            {cartMessage && (
+                                <Alert variant={cartMessage.type} className="mt-3">
+                                    {cartMessage.text}
+                                </Alert>
+                            )}
                         </Col>
                     </Row>
                 </Card.Body>
@@ -403,69 +319,67 @@ const RestaurantDetailPage = () => {
             {/* Menu Tabs */}
             <h2 className="mb-4">Menu</h2>
 
-            <Tabs
-                activeKey={activeCategory}
-                onSelect={(k) => setActiveCategory(k)}
-                className="mb-3"
-            >
-                {menuCategories.map((category) => (
-                    <Tab key={category} eventKey={category} title={category}>
-                        <Row>
-                            <Col md={3} className="mb-4">
-                                <ListGroup>
-                                    {menuCategories.map((category) => (
-                                        <ListGroup.Item
-                                            key={category}
-                                            action
-                                            active={activeCategory === category}
-                                            onClick={() => setActiveCategory(category)}
-                                            className="d-flex justify-content-between align-items-center"
-                                        >
-                                            {category}
-                                            <Badge bg="primary" pill>{menuItemsByCategory[category].length}</Badge>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                            </Col>
-                            <Col md={9}>
-                                <Card className="shadow-sm">
-                                    <Card.Header>
-                                        <h3 className="mb-0">{category}</h3>
-                                    </Card.Header>
-                                    <ListGroup variant="flush">
-                                        {menuItemsByCategory[category]?.map((item) => (
-                                            <ListGroup.Item key={item.id} className="py-3">
-                                                <Row>
-                                                    <Col md={8}>
-                                                        <h5>{item.name}</h5>
-                                                        <p className="text-muted mb-1">{item.description}</p>
-                                                        <Badge bg="primary" className="mt-1">${item.price.toFixed(2)}</Badge>
-                                                    </Col>
-                                                    <Col md={4} className="d-flex align-items-center justify-content-end">
-                                                        <Button
-                                                            variant="outline-success"
-                                                            size="sm"
-                                                            onClick={() => addToCart(item)}
-                                                        >
-                                                            <FaShoppingCart className="me-2" />
-                                                            Add to Cart
-                                                        </Button>
-                                                    </Col>
-                                                </Row>
+            {menuCategories.length === 0 ? (
+                <Alert variant="info">No menu items available for this restaurant</Alert>
+            ) : (
+                <Tabs
+                    activeKey={activeCategory}
+                    onSelect={(k) => setActiveCategory(k)}
+                    className="mb-3"
+                >
+                    {menuCategories.map((category) => (
+                        <Tab key={category} eventKey={category} title={category}>
+                            <Row>
+                                <Col md={3} className="mb-4">
+                                    <ListGroup>
+                                        {menuCategories.map((category) => (
+                                            <ListGroup.Item
+                                                key={category}
+                                                action
+                                                active={activeCategory === category}
+                                                onClick={() => setActiveCategory(category)}
+                                                className="d-flex justify-content-between align-items-center"
+                                            >
+                                                {category}
+                                                <Badge bg="primary" pill>{menuItemsByCategory[category]?.length || 0}</Badge>
                                             </ListGroup.Item>
                                         ))}
                                     </ListGroup>
-                                </Card>
-                            </Col>
-                        </Row>
-                    </Tab>
-                ))}
-            </Tabs>
-
-            {cartMessage && (
-                <Alert variant={cartMessage.type} className="mb-3">
-                    {cartMessage.text}
-                </Alert>
+                                </Col>
+                                <Col md={9}>
+                                    <Card className="shadow-sm">
+                                        <Card.Header>
+                                            <h3 className="mb-0">{category}</h3>
+                                        </Card.Header>
+                                        <ListGroup variant="flush">
+                                            {menuItemsByCategory[category]?.map((item) => (
+                                                <ListGroup.Item key={item.id} className="py-3">
+                                                    <Row>
+                                                        <Col md={8}>
+                                                            <div className="d-flex flex-column">
+                                                                <h5 className="mb-1">{item.name}</h5>
+                                                                <p className="text-muted mb-2">{item.description}</p>
+                                                                <h6 className="text-primary">${parseFloat(item.price).toFixed(2)}</h6>
+                                                            </div>
+                                                        </Col>
+                                                        <Col md={4} className="d-flex align-items-center justify-content-end">
+                                                            <button
+                                                                onClick={() => handleAddToCart(item)}
+                                                                className="btn btn-outline-primary"
+                                                            >
+                                                                Add to Cart
+                                                            </button>
+                                                        </Col>
+                                                    </Row>
+                                                </ListGroup.Item>
+                                            ))}
+                                        </ListGroup>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </Tab>
+                    ))}
+                </Tabs>
             )}
         </Container>
     );

@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const LoginPage = () => {
+const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
-    const { login, user } = useAuth();
+    const { register, user } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
 
-    // Check if there was a redirect from another page
-    const from = location.state?.from || '/restaurants';
-
-    // If user is already logged in, redirect to the 'from' page
+    // If user is already logged in, redirect to restaurants page
     useEffect(() => {
         if (user) {
-            console.log('User already logged in, redirecting to:', from);
-            navigate(from, { replace: true });
+            console.log('User already logged in, redirecting to restaurants page');
+            navigate('/restaurants');
         }
-    }, [user, navigate, from]);
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,32 +28,40 @@ const LoginPage = () => {
         try {
             setError('');
             setMessage('');
-            setLoading(true);
 
             // Validate inputs
-            if (!email || !password) {
-                throw new Error('Email and password are required');
+            if (!email || !password || !confirmPassword) {
+                throw new Error('All fields are required');
             }
 
-            console.log('Attempting login with email:', email);
+            if (password !== confirmPassword) {
+                throw new Error('Passwords do not match');
+            }
 
-            // Login with Supabase
-            const { success, error } = await login(email, password);
+            if (password.length < 6) {
+                throw new Error('Password must be at least 6 characters');
+            }
+
+            setLoading(true);
+            console.log('Attempting registration with email:', email);
+
+            // Register with Supabase
+            const { success, error } = await register(email, password);
 
             if (!success) {
-                throw new Error(error || 'Failed to sign in');
+                throw new Error(error || 'Failed to create account');
             }
 
-            console.log('Login successful, redirecting to:', from);
-            setMessage('Login successful! Redirecting...');
+            console.log('Registration successful');
+            setMessage('Account created successfully! Redirecting to login...');
 
-            // Navigate to the 'from' page or default page
+            // Redirect to login page after a short delay
             setTimeout(() => {
-                navigate(from, { replace: true });
-            }, 1000);
+                navigate('/login');
+            }, 2000);
 
         } catch (err) {
-            console.error('Login error:', err);
+            console.error('Registration error:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -69,7 +74,7 @@ const LoginPage = () => {
                 <Col xs={12} md={8} lg={6}>
                     <Card className="shadow">
                         <Card.Body className="p-5">
-                            <h2 className="text-center mb-4">Sign In</h2>
+                            <h2 className="text-center mb-4">Create Account</h2>
 
                             {error && (
                                 <Alert variant="danger">{error}</Alert>
@@ -92,14 +97,29 @@ const LoginPage = () => {
                                     />
                                 </Form.Group>
 
-                                <Form.Group className="mb-4" controlId="formPassword">
+                                <Form.Group className="mb-3" controlId="formPassword">
                                     <Form.Label>Password</Form.Label>
                                     <Form.Control
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        placeholder="Enter your password"
+                                        placeholder="Create a password"
+                                        disabled={loading}
+                                    />
+                                    <Form.Text className="text-muted">
+                                        Password must be at least 6 characters
+                                    </Form.Text>
+                                </Form.Group>
+
+                                <Form.Group className="mb-4" controlId="formConfirmPassword">
+                                    <Form.Label>Confirm Password</Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        placeholder="Confirm your password"
                                         disabled={loading}
                                     />
                                 </Form.Group>
@@ -120,23 +140,18 @@ const LoginPage = () => {
                                                     aria-hidden="true"
                                                     className="me-2"
                                                 />
-                                                Signing In...
+                                                Creating Account...
                                             </>
                                         ) : (
-                                            'Sign In'
+                                            'Create Account'
                                         )}
                                     </Button>
                                 </div>
                             </Form>
 
                             <div className="text-center mt-4">
-                                <div className="mb-3">
-                                    Don't have an account?{' '}
-                                    <Link to="/register">Sign Up</Link>
-                                </div>
-                                <div>
-                                    <Link to="/forgot-password">Forgot Password?</Link>
-                                </div>
+                                Already have an account?{' '}
+                                <Link to="/login">Sign In</Link>
                             </div>
                         </Card.Body>
                     </Card>
@@ -146,4 +161,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage; 
+export default RegisterPage; 
