@@ -70,13 +70,18 @@ export function AuthProvider({ children }) {
     }, []);
 
     // Register new user
-    const register = async (email, password) => {
+    const register = async (email, password, name) => {
         try {
             console.log('Registering new user with email:', email);
 
             const { data: { user }, error } = await supabase.auth.signUp({
                 email,
-                password
+                password,
+                options: {
+                    data: {
+                        name: name
+                    }
+                }
             });
 
             if (error) {

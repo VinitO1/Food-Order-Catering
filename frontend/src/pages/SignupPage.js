@@ -49,7 +49,7 @@ const SignupPage = () => {
             // Remove confirmPassword before sending to API
             const { confirmPassword, ...userData } = formData;
             console.log('Submitting registration with data:', userData);
-            await register(userData);
+            await register(userData.email, userData.password, userData.name);
             navigate('/');
         } catch (err) {
             console.error('Signup error:', err);
@@ -153,9 +153,9 @@ const SignupPage = () => {
                                     </Button>
                                 </div>
 
-                               
+
                                 <div className="d-grid mb-4">
-                           
+
                                 </div>
 
                                 <div className="text-center">

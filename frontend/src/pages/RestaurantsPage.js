@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Alert, Image, Accordion } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, Image } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import supabase from '../utils/supabase';
 import { FaMapMarkerAlt, FaUtensils } from 'react-icons/fa';
@@ -25,22 +25,16 @@ const RestaurantsPage = () => {
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [debugInfo, setDebugInfo] = useState('');
 
     useEffect(() => {
         const fetchRestaurants = async () => {
             try {
                 setLoading(true);
-                console.log('Fetching restaurants from Supabase...');
 
                 // Check if Supabase is properly initialized
                 if (!supabase) {
                     throw new Error('Supabase client not initialized');
                 }
-
-                // Get the Supabase URL for debugging
-                const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-                console.log('Using Supabase URL:', supabaseUrl);
 
                 // Fetch all restaurants
                 const { data, error } = await supabase
@@ -49,13 +43,8 @@ const RestaurantsPage = () => {
                     .order('name');
 
                 if (error) {
-                    console.error('Error fetching restaurants:', error);
                     throw new Error(`Error fetching restaurants: ${error.message}`);
                 }
-
-                // Log restaurant data for debugging
-                console.log('Raw restaurants data:', data);
-                console.log('Restaurants data fetched:', data?.length || 0, 'restaurants');
 
                 if (data?.length > 0) {
                     // Process the restaurant data to add missing fields
@@ -71,31 +60,12 @@ const RestaurantsPage = () => {
                         catering_available: restaurant.catering_available === 'true' || restaurant.catering_available === true
                     }));
 
-                    console.log('Processed restaurant data:', processedData);
                     setRestaurants(processedData);
-                    setDebugInfo(JSON.stringify(processedData, null, 2));
                 } else {
-                    console.log('No restaurants found in database');
-
-                    // Try an alternative query to see if the table exists
-                    const { count, error: countError } = await supabase
-                        .from('restaurants')
-                        .select('*', { count: 'exact', head: true });
-
-                    if (countError) {
-                        console.error('Error checking restaurants table:', countError);
-                        setDebugInfo('Error checking if restaurants table exists: ' + countError.message);
-                    } else {
-                        console.log('Restaurants table exists with count:', count);
-                        setDebugInfo('Restaurants table exists but contains no data. Count: ' + count);
-                    }
-
                     setRestaurants([]);
                 }
             } catch (err) {
-                console.error('Error fetching restaurants:', err);
                 setError(err.message);
-                setDebugInfo(`Error: ${err.message}\nStack: ${err.stack}`);
             } finally {
                 setLoading(false);
             }
@@ -132,76 +102,50 @@ const RestaurantsPage = () => {
             )}
 
             {restaurants.length === 0 ? (
-                <>
-                    <Alert variant="info">
-                        No restaurants found in the database. You may need to import the restaurant data.
-                    </Alert>
-
-                    <Accordion className="mt-4 mb-4">
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header>Debug Information</Accordion.Header>
-                            <Accordion.Body>
-                                <pre style={{ maxHeight: '400px', overflow: 'auto' }}>
-                                    {debugInfo || 'No debug information available'}
-                                </pre>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    </Accordion>
-                </>
+                <Alert variant="info">
+                    No restaurants found in the database. You may need to import the restaurant data.
+                </Alert>
             ) : (
-                <>
-                    <Row>
-                        {restaurants.map((restaurant) => (
-                            <Col md={4} className="mb-4" key={restaurant.id}>
-                                <Card className="h-100 restaurant-card shadow-sm">
-                                    <div className="restaurant-image-container">
-                                        <Image
-                                            src={restaurant.image_url}
-                                            alt={restaurant.name}
-                                            className="card-img-top restaurant-image"
-                                            style={{ height: '200px', objectFit: 'cover' }}
-                                        />
-                                    </div>
-                                    <Card.Body>
-                                        {restaurant.catering_available && (
-                                            <div className="badge bg-success mb-2">
-                                                Catering Available
-                                            </div>
-                                        )}
-                                        <Card.Title className="restaurant-title">{restaurant.name}</Card.Title>
-                                        <Card.Text className="text-muted">
-                                            <div className="mb-1">
-                                                <FaUtensils className="me-2" />
-                                                <span className="cuisine-type">{restaurant.cuisine_type || 'Indian'}</span>
-                                            </div>
-                                            <div>
-                                                <FaMapMarkerAlt className="me-2" />
-                                                {restaurant.city}, {restaurant.province}
-                                            </div>
-                                        </Card.Text>
-                                        <Link
-                                            to={`/restaurants/${restaurant.id}`}
-                                            className="btn btn-primary w-100 mt-2"
-                                        >
-                                            View Menu
-                                        </Link>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
-
-                    <Accordion className="mt-4">
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header>Debug Information</Accordion.Header>
-                            <Accordion.Body>
-                                <pre style={{ maxHeight: '400px', overflow: 'auto' }}>
-                                    {debugInfo || 'No debug information available'}
-                                </pre>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    </Accordion>
-                </>
+                <Row>
+                    {restaurants.map((restaurant) => (
+                        <Col md={4} className="mb-4" key={restaurant.id}>
+                            <Card className="h-100 restaurant-card shadow-sm">
+                                <div className="restaurant-image-container">
+                                    <Image
+                                        src={restaurant.image_url}
+                                        alt={restaurant.name}
+                                        className="card-img-top restaurant-image"
+                                        style={{ height: '200px', objectFit: 'cover' }}
+                                    />
+                                </div>
+                                <Card.Body>
+                                    {restaurant.catering_available && (
+                                        <div className="badge bg-success mb-2">
+                                            Catering Available
+                                        </div>
+                                    )}
+                                    <Card.Title className="restaurant-title">{restaurant.name}</Card.Title>
+                                    <Card.Text className="text-muted">
+                                        <div className="mb-1">
+                                            <FaUtensils className="me-2" />
+                                            <span className="cuisine-type">{restaurant.cuisine_type || 'Indian'}</span>
+                                        </div>
+                                        <div>
+                                            <FaMapMarkerAlt className="me-2" />
+                                            {restaurant.city}, {restaurant.province}
+                                        </div>
+                                    </Card.Text>
+                                    <Link
+                                        to={`/restaurants/${restaurant.id}`}
+                                        className="btn btn-primary w-100 mt-2"
+                                    >
+                                        View Menu
+                                    </Link>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
             )}
         </Container>
     );
