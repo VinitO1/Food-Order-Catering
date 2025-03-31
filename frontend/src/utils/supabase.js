@@ -156,17 +156,12 @@ export const addToCart = async (menuItem, userId, restaurantId) => {
     // Check for authentication
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) {
-      console.error("Authentication required:", sessionError || "No valid session found");
       throw new Error("Authentication required: No valid session found");
     }
-
-    console.log(`Adding item to cart: ${menuItem.name} for user ${userId} from restaurant ${restaurantId}`);
-    console.log('Menu item details:', menuItem);
 
     // Get the menu table name for this restaurant
     const menuTableName = RESTAURANT_MENU_TABLES[restaurantId];
     if (!menuTableName) {
-      console.error(`No menu table found for restaurant ID ${restaurantId}`);
       throw new Error(`Failed to add item to cart: Cannot determine menu table for restaurant ID ${restaurantId}`);
     }
 
@@ -179,17 +174,15 @@ export const addToCart = async (menuItem, userId, restaurantId) => {
       .eq('restaurant_id', restaurantId);
 
     if (existingError) {
-      console.error('Error checking existing cart items:', existingError);
       throw new Error(`Failed to check existing cart items: ${existingError.message}`);
     }
 
-    console.log('Existing items check result:', existingItems);
+    let result;
 
     if (existingItems && existingItems.length > 0) {
       // Item already exists, update quantity
       const existingItem = existingItems[0];
       const newQuantity = existingItem.quantity + 1;
-      console.log(`Updating existing cart item (ID: ${existingItem.id}) quantity to ${newQuantity}`);
 
       const { data, error } = await supabase
         .from('cart_items')
@@ -203,16 +196,12 @@ export const addToCart = async (menuItem, userId, restaurantId) => {
         .single();
 
       if (error) {
-        console.error('Error updating cart item quantity:', error);
         throw new Error(`Failed to update cart item: ${error.message}`);
       }
 
-      console.log('Cart item updated:', data);
-      return { success: true, data, message: 'Item quantity updated in cart' };
+      result = { success: true, data, message: 'Item quantity updated in cart' };
     } else {
       // Add new item to cart
-      console.log('Adding new item to cart');
-
       // Prepare the cart item data
       const cartItemData = {
         user_id: userId,
@@ -225,8 +214,6 @@ export const addToCart = async (menuItem, userId, restaurantId) => {
         created_at: new Date().toISOString()
       };
 
-      console.log('New cart item data:', cartItemData);
-
       const { data, error } = await supabase
         .from('cart_items')
         .insert(cartItemData)
@@ -234,15 +221,17 @@ export const addToCart = async (menuItem, userId, restaurantId) => {
         .single();
 
       if (error) {
-        console.error('Error adding to cart:', error);
         throw new Error(`Failed to add item to cart: ${error.message}`);
       }
 
-      console.log('Item added to cart:', data);
-      return { success: true, data, message: 'Item added to cart' };
+      result = { success: true, data, message: 'Item added to cart' };
     }
+
+    // Dispatch a custom event to notify Header component that cart has been updated
+    window.dispatchEvent(new CustomEvent('cart_updated', { detail: { userId } }));
+
+    return result;
   } catch (err) {
-    console.error('Error adding to cart:', err);
     return { success: false, error: err.message };
   }
 };
@@ -253,11 +242,8 @@ export const getUserCart = async (userId) => {
     // Check for authentication
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) {
-      console.error("Authentication required:", sessionError || "No valid session found");
       throw new Error("Authentication required: No valid session found");
     }
-
-    console.log(`Fetching cart for user: ${userId}`);
 
     // Fetch cart items
     const { data: cartItems, error: cartError } = await supabase
@@ -266,11 +252,8 @@ export const getUserCart = async (userId) => {
       .eq('user_id', userId);
 
     if (cartError) {
-      console.error('Error fetching cart items:', cartError);
       throw new Error(`Failed to fetch cart items: ${cartError.message}`);
     }
-
-    console.log(`Found ${cartItems?.length || 0} cart items for user ${userId}`);
 
     // If there are no cart items, return empty array
     if (!cartItems || cartItems.length === 0) {
@@ -279,7 +262,6 @@ export const getUserCart = async (userId) => {
 
     // Extract unique restaurant IDs from cart items
     const restaurantIds = [...new Set(cartItems.map(item => item.restaurant_id))];
-    console.log(`Cart items found from ${restaurantIds.length} restaurants:`, restaurantIds);
 
     // Fetch restaurant data for these IDs
     const { data: restaurants, error: restaurantError } = await supabase
@@ -288,11 +270,8 @@ export const getUserCart = async (userId) => {
       .in('id', restaurantIds);
 
     if (restaurantError) {
-      console.error('Error fetching restaurant data:', restaurantError);
-      console.log('Continuing without restaurant details');
+      // Continue without restaurant details
     }
-
-    console.log(`Found ${restaurants?.length || 0} restaurants`);
 
     // Create a map for quick restaurant lookup
     const restaurantMap = {};
@@ -332,10 +311,8 @@ export const getUserCart = async (userId) => {
       return fixedItem;
     });
 
-    console.log(`Processed ${processedData.length} cart items with restaurant data`);
     return { success: true, data: processedData };
   } catch (err) {
-    console.error('Error fetching cart:', err);
     return { success: false, data: [], error: err.message };
   }
 };
@@ -364,11 +341,8 @@ export const updateCartItemQuantity = async (cartItemId, quantity) => {
     // Check for authentication
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) {
-      console.error("Authentication required:", sessionError || "No valid session found");
       throw new Error("Authentication required: No valid session found");
     }
-
-    console.log(`Updating cart item ${cartItemId} to quantity ${quantity}`);
 
     if (quantity < 1) {
       throw new Error('Quantity must be at least 1');
@@ -385,13 +359,16 @@ export const updateCartItemQuantity = async (cartItemId, quantity) => {
       .single();
 
     if (error) {
-      console.error('Error updating cart item:', error);
       throw new Error(`Failed to update cart item: ${error.message}`);
+    }
+
+    // Dispatch cart updated event
+    if (data && data.user_id) {
+      window.dispatchEvent(new CustomEvent('cart_updated', { detail: { userId: data.user_id } }));
     }
 
     return { success: true, data };
   } catch (err) {
-    console.error('Error updating cart item:', err);
     return { success: false, error: err.message };
   }
 };
@@ -402,11 +379,8 @@ export const removeFromCart = async (cartItemId) => {
     // Check for authentication
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) {
-      console.error("Authentication required:", sessionError || "No valid session found");
       throw new Error("Authentication required: No valid session found");
     }
-
-    console.log(`Removing item ${cartItemId} from cart`);
 
     const { data, error } = await supabase
       .from('cart_items')
@@ -415,13 +389,16 @@ export const removeFromCart = async (cartItemId) => {
       .select();
 
     if (error) {
-      console.error('Error removing from cart:', error);
       throw new Error(`Failed to remove item from cart: ${error.message}`);
+    }
+
+    // If user ID is available in the deleted item, dispatch the cart_updated event
+    if (data && data.length > 0 && data[0].user_id) {
+      window.dispatchEvent(new CustomEvent('cart_updated', { detail: { userId: data[0].user_id } }));
     }
 
     return { success: true, data };
   } catch (err) {
-    console.error('Error removing from cart:', err);
     return { success: false, error: err.message };
   }
 };

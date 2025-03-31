@@ -13,11 +13,8 @@ const Header = () => {
     const [cartCount, setCartCount] = useState(0);
     const [showToast, setShowToast] = useState(false);
 
-    // Debug log for current authentication state
+    // When user state changes, fetch cart count
     useEffect(() => {
-        console.log('Header - Auth state changed:', user ? `User ${user.id} is logged in` : 'No user logged in');
-
-        // When user state changes, fetch cart count
         if (user) {
             fetchCartCount();
         } else {
@@ -25,38 +22,47 @@ const Header = () => {
         }
     }, [user]);
 
+    // Listen for cart_updated event to refresh the cart count
+    useEffect(() => {
+        const handleCartUpdated = (event) => {
+            if (user && event.detail.userId === user.id) {
+                fetchCartCount();
+            }
+        };
+
+        window.addEventListener('cart_updated', handleCartUpdated);
+
+        return () => {
+            window.removeEventListener('cart_updated', handleCartUpdated);
+        };
+    }, [user]);
+
     // Fetch cart count
     const fetchCartCount = async () => {
         try {
             if (!user) return;
 
-            console.log('Fetching cart count for user:', user.id);
-
             // Get current items using our utility function
             const { success, data, error } = await getUserCart(user.id);
 
             if (!success || error) {
-                console.error('Error fetching cart count:', error);
                 return;
             }
 
             // Calculate total quantity
             const totalItems = data.reduce((total, item) => total + item.quantity, 0);
-            console.log(`Cart count fetched: ${totalItems} items`);
             setCartCount(totalItems);
         } catch (err) {
-            console.error('Error fetching cart count:', err);
+            // Silently handle errors
         }
     };
 
     const handleLogout = async () => {
         try {
-            console.log('User logging out');
             await logout();
-            console.log('Logout successful');
             navigate('/');
         } catch (err) {
-            console.error('Error logging out:', err);
+            // Handle error
         }
     };
 

@@ -48,7 +48,6 @@ const RestaurantDetailPage = () => {
         try {
             // Ensure user ID is a string
             const userIdStr = userId.toString();
-            console.log("Fetching cart for user ID:", userIdStr);
 
             const { data, error } = await supabase
                 .from('cart_items')
@@ -62,14 +61,12 @@ const RestaurantDetailPage = () => {
                 .eq('user_id', userIdStr);
 
             if (error) {
-                console.error('Error fetching cart:', error);
                 return;
             }
 
-            console.log("Cart data fetched:", data);
             setCart(data || []);
         } catch (err) {
-            console.error('Error fetching cart:', err);
+            // Silently handle error
         }
     };
 
@@ -163,7 +160,6 @@ const RestaurantDetailPage = () => {
         try {
             // Check if user is logged in
             if (!user) {
-                console.log('User not authenticated, showing login message');
                 setCartMessage({
                     type: 'warning',
                     text: 'Please sign in to add items to your cart'
@@ -175,7 +171,6 @@ const RestaurantDetailPage = () => {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                console.log("No valid session found, redirecting to login");
                 setCartMessage({
                     type: 'warning',
                     text: 'Your session has expired. Please sign in again to add items to your cart.'
@@ -183,18 +178,12 @@ const RestaurantDetailPage = () => {
                 return;
             }
 
-            console.log("Adding to cart with valid session for user:", user.id);
-            console.log("Menu item:", item);
-            console.log("Restaurant ID:", restaurant.id);
-
             // Add to cart using our updated utility function
             const { success, data, error, message } = await addToCart(item, user.id, restaurant.id);
 
             if (!success || error) {
                 throw new Error(error);
             }
-
-            console.log("Successfully added to cart:", data);
 
             // Update local cart state
             const newCartItem = {
@@ -225,7 +214,6 @@ const RestaurantDetailPage = () => {
                 setCartMessage(null);
             }, 3000);
         } catch (err) {
-            console.error('Error adding to cart:', err);
             setCartMessage({
                 type: 'danger',
                 text: `Error adding to cart: ${err.message}`

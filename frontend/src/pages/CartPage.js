@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Alert, Spinner, Table, Image, Accordion } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert, Spinner, Table, Image } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserCart, updateCartItemQuantity, removeFromCart } from '../utils/supabase';
-import { FaTrash, FaMinus, FaPlus, FaShoppingCart, FaBug } from 'react-icons/fa';
+import { FaTrash, FaMinus, FaPlus, FaShoppingCart } from 'react-icons/fa';
 
 const CartPage = () => {
     const { user } = useAuth();
@@ -14,11 +14,8 @@ const CartPage = () => {
     const [message, setMessage] = useState(null);
     const [updatingItemId, setUpdatingItemId] = useState(null);
     const [groupedItems, setGroupedItems] = useState({});
-    const [debugData, setDebugData] = useState('');
-    const [showDebug, setShowDebug] = useState(false);
 
     useEffect(() => {
-        console.log('CartPage - Current user:', user);
         fetchCartItems();
     }, [user]);
 
@@ -27,21 +24,17 @@ const CartPage = () => {
             setLoading(true);
 
             if (!user) {
-                console.log('No authenticated user, redirecting to login');
                 setError('Please log in to view your cart');
                 setTimeout(() => navigate('/login'), 2000);
                 return;
             }
 
-            console.log('Fetching cart items for user:', user.id);
             const { success, data, error } = await getUserCart(user.id);
 
             if (!success || error) {
                 throw new Error(error || 'Failed to fetch cart items');
             }
 
-            console.log('Cart items fetched:', data);
-            setDebugData(JSON.stringify(data, null, 2));
             setCartItems(data);
 
             // Group items by restaurant
@@ -61,13 +54,10 @@ const CartPage = () => {
                 grouped[restaurantId].items.push(item);
             });
 
-            console.log('Grouped cart items:', grouped);
             setGroupedItems(grouped);
             setError(null);
         } catch (err) {
-            console.error('Error fetching cart:', err);
             setError(err.message);
-            setDebugData(JSON.stringify(err, null, 2));
         } finally {
             setLoading(false);
         }
@@ -83,7 +73,6 @@ const CartPage = () => {
                 return;
             }
 
-            console.log(`Updating cart item ${cartItemId} to quantity ${newQuantity}`);
             const { success, data, error } = await updateCartItemQuantity(cartItemId, newQuantity);
 
             if (!success || error) {
@@ -110,7 +99,6 @@ const CartPage = () => {
 
             setMessage({ type: 'success', text: 'Quantity updated' });
         } catch (err) {
-            console.error('Error updating quantity:', err);
             setMessage({ type: 'danger', text: err.message });
         } finally {
             setUpdatingItemId(null);
@@ -122,7 +110,6 @@ const CartPage = () => {
     const handleRemoveItem = async (cartItemId) => {
         try {
             setUpdatingItemId(cartItemId);
-            console.log(`Removing item ${cartItemId} from cart`);
 
             const { success, error } = await removeFromCart(cartItemId);
 
@@ -149,7 +136,6 @@ const CartPage = () => {
 
             setMessage({ type: 'success', text: 'Item removed from cart' });
         } catch (err) {
-            console.error('Error removing item:', err);
             setMessage({ type: 'danger', text: err.message });
         } finally {
             setUpdatingItemId(null);
@@ -190,24 +176,6 @@ const CartPage = () => {
                 <Link to="/" className="btn btn-primary mt-3">
                     Return to Home
                 </Link>
-
-                <Button
-                    variant="link"
-                    onClick={() => setShowDebug(!showDebug)}
-                    className="mt-3 text-decoration-none"
-                >
-                    <FaBug className="me-1" />
-                    {showDebug ? 'Hide Debug Info' : 'Show Debug Info'}
-                </Button>
-
-                {showDebug && (
-                    <div className="mt-3 border p-3 bg-light">
-                        <h5>Debug Information:</h5>
-                        <pre className="small" style={{ whiteSpace: 'pre-wrap' }}>
-                            {debugData}
-                        </pre>
-                    </div>
-                )}
             </Container>
         );
     }
@@ -342,14 +310,6 @@ const CartPage = () => {
                             <Link to="/restaurants" className="btn btn-outline-secondary">
                                 Continue Shopping
                             </Link>
-                            <Button
-                                variant="link"
-                                onClick={() => setShowDebug(!showDebug)}
-                                className="ms-2 text-decoration-none"
-                            >
-                                <FaBug className="me-1" />
-                                {showDebug ? 'Hide Debug Info' : 'Show Debug Info'}
-                            </Button>
                         </Col>
                         <Col md={6} className="text-end">
                             <div className="mb-3">
@@ -378,19 +338,6 @@ const CartPage = () => {
                     </Row>
                 </Card.Body>
             </Card>
-
-            {showDebug && (
-                <Accordion defaultActiveKey="0" className="mb-4">
-                    <Accordion.Item eventKey="0">
-                        <Accordion.Header>Debug Data</Accordion.Header>
-                        <Accordion.Body>
-                            <pre className="small" style={{ whiteSpace: 'pre-wrap' }}>
-                                {debugData}
-                            </pre>
-                        </Accordion.Body>
-                    </Accordion.Item>
-                </Accordion>
-            )}
         </Container>
     );
 };
