@@ -14,7 +14,7 @@ const Footer = () => {
                             Providing exceptional food services for all occasions. From daily meals to special events,
                             we pride ourselves on quality ingredients, expert chefs, and impeccable service.
                         </p>
-                     
+
                     </Col>
 
                     <Col lg={4} md={6} className="mb-4 mb-md-0">
@@ -22,9 +22,6 @@ const Footer = () => {
                         <ListGroup variant="flush" className="bg-dark">
                             <ListGroup.Item className="bg-dark text-white border-0 ps-0 py-1">
                                 <a href="/" className="text-white text-decoration-none">Home</a>
-                            </ListGroup.Item>
-                            <ListGroup.Item className="bg-dark text-white border-0 ps-0 py-1">
-                                <a href="/order" className="text-white text-decoration-none">Order Food</a>
                             </ListGroup.Item>
                             <ListGroup.Item className="bg-dark text-white border-0 ps-0 py-1">
                                 <a href="/catering" className="text-white text-decoration-none">Catering Services</a>
@@ -48,7 +45,7 @@ const Footer = () => {
                             <FaPhone className="me-2" />
                             (123) 456-7890
                         </p>
-                   
+
                     </Col>
                 </Row>
 
