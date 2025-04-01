@@ -7,6 +7,7 @@ const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [name, setName] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -46,7 +47,7 @@ const RegisterPage = () => {
             console.log('Attempting registration with email:', email);
 
             // Register with Supabase
-            const { success, error } = await register(email, password);
+            const { success, error } = await register(email, password, name);
 
             if (!success) {
                 throw new Error(error || 'Failed to create account');
@@ -85,6 +86,17 @@ const RegisterPage = () => {
                             )}
 
                             <Form onSubmit={handleSubmit}>
+                                <Form.Group className="mb-3" controlId="formName">
+                                    <Form.Label>Full Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Enter your full name"
+                                        disabled={loading}
+                                    />
+                                </Form.Group>
+
                                 <Form.Group className="mb-3" controlId="formEmail">
                                     <Form.Label>Email</Form.Label>
                                     <Form.Control

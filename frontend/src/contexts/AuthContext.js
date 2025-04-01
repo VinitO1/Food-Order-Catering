@@ -74,6 +74,7 @@ export function AuthProvider({ children }) {
         try {
             console.log('Registering new user with email:', email);
 
+            // Register with Supabase Auth
             const { data: { user }, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -90,6 +91,25 @@ export function AuthProvider({ children }) {
             }
 
             console.log('Registration successful, user:', user.id);
+
+            // Also insert the user into the users table
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .insert([
+                    {
+                        id: user.id,
+                        name: name || email.split('@')[0], // Use name if provided, otherwise use part of email
+                        email
+                    }
+                ]);
+
+            if (userError) {
+                console.error('Error adding user to users table:', userError);
+                // We don't return an error here because the auth registration succeeded
+                // The user record can be created later if needed
+            } else {
+                console.log('User added to users table successfully');
+            }
 
             return { success: true, user };
         } catch (err) {
